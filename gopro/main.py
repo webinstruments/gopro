@@ -37,7 +37,7 @@ def download(media_id: str, storage_path: Path) -> None:
     download_links = requests.get(f"https://api.gopro.com/media/{media_id}/download", headers=API_HEADERS).json()
     files = [u for u in download_links["_embedded"]["variations"] if u["label"] in ["source", "baked_source"]]
 
-    logger.info(f"Got {len(files)} files.")
+    logger.debug(f"Got {len(files)} files.")
 
     if not len(files):
         logger.error(f"{media_id=} contains no downloadable files...")
