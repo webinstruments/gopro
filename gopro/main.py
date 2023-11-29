@@ -73,3 +73,5 @@ for m in MEDIA_FILES:
         continue
 
     download(media_id=id, storage_path=file_path)
+
+logger.info("Done.")
