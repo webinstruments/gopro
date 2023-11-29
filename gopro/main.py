@@ -24,7 +24,7 @@ def download_file(url: str, store_path: Path, item_number: Optional[int]) -> Non
         logger.warning(f"Skipping {dest_path}.")
         return
     
-    logger.info(f"Storing file {dest_path}...")
+    logger.debug(f"Storing file {dest_path}...")
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
         with open(dest_path, 'wb') as f:
@@ -45,8 +45,9 @@ def download(media_id: str, storage_path: Path) -> None:
     for u in files:
         download_file(url=u["url"], store_path=storage_path, item_number=u.get("item_number"))
     
-
+total_files = len(MEDIA_FILES)
 for m in MEDIA_FILES:
+    total_files -= 1
     file = m["filename"]
     id = m["id"]
     m_type = m["type"]
@@ -73,5 +74,6 @@ for m in MEDIA_FILES:
         continue
 
     download(media_id=id, storage_path=file_path)
+    logger.info(f"{total_files} files left to download.")
 
 logger.info("Done.")
