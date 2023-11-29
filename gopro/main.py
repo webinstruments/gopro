@@ -36,8 +36,12 @@ def download_file(url: str, store_path: Path, item_number: Optional[int]) -> Non
 def download(media_id: str, storage_path: Path) -> None:
     download_links = requests.get(f"https://api.gopro.com/media/{media_id}/download", headers=API_HEADERS).json()
     files = [u for u in download_links["_embedded"]["variations"] if u["label"] in ["source", "baked_source"]]
+
     logger.info(f"Got {len(files)} files.")
-    assert len(files)
+
+    if not len(files):
+        logger.error(f"{media_id=} contains no downloadable files...")
+    
     for u in files:
         download_file(url=u["url"], store_path=storage_path, item_number=u.get("item_number"))
     
@@ -47,15 +51,18 @@ for m in MEDIA_FILES:
     id = m["id"]
     m_type = m["type"]
     item_count = m["item_count"]
+    file_size_mb = m["file_size"] / 1000 / 1000 if m["file_size"] else -1
+
     if not file and m_type == "MultiClipEdit":
         file = f"{id}.mp4"
-    assert id
-    assert file
+
     created_at_str = m["captured_at"]
     created_at = datetime.datetime.strptime(created_at_str, "%Y-%m-%dT%H:%M:%SZ")
+    assert id
+    assert file
     
     folder_name = created_at.strftime("%d%m%Y")
-    logger.info(f"Processing file {file}, date {folder_name}...")
+    logger.info(f"Processing file {file} [{file_size_mb}MB], date {folder_name}...")
     
     directory_path = Path(storage_path).joinpath(folder_name)
     directory_path.mkdir(exist_ok=True)
@@ -64,6 +71,5 @@ for m in MEDIA_FILES:
     if item_count == 1 and file_path.exists():
         logger.warning(f"File {file_path} already exists.")
         continue
-
 
     download(media_id=id, storage_path=file_path)
